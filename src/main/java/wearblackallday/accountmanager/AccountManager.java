@@ -4,8 +4,8 @@ import com.formdev.flatlaf.FlatDarculaLaf;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import wearblackallday.swing.components.CustomPanel;
-import wearblackallday.swing.components.FrameBuilder;
 import wearblackallday.swing.components.SelectionBox;
+import wearblackallday.swing.components.builder.FrameBuilder;
 
 import javax.swing.*;
 import java.awt.Dimension;
@@ -37,31 +37,28 @@ public class AccountManager {
     }
 
     public static void main(String[] args) {
-        CustomPanel menu = new CustomPanel(200, 40)
-                .addTextField("user:pass, user1:pass1...", "input")
-                .addComponent(() -> ELO_SELECTION, (customPanel, selectionBox) ->
-                        selectionBox.addActionListener(e -> OUTPUT.update()))
-                .addComponent(() -> REGION_SELECTION, (customPanel, selectionBox) ->
-                        selectionBox.addActionListener(e -> OUTPUT.update()))
-                .addButton("add Accounts", (customPanel, button, event) -> {
-                    Stream.of(customPanel.getText("input").split(",")).forEach(account -> {
-                        String[] credentials = account.trim().split(":");
-                        STORAGE.accounts.add(new Account(credentials[0], credentials[1],
-                                ELO_SELECTION.getSelected(), REGION_SELECTION.getSelected()));
-                    });
-                    OUTPUT.update();
-                });
-        menu.setLayout(new BoxLayout(menu, BoxLayout.Y_AXIS));
-
+        FrameBuilder.newBuilder().centered().sizeLocked().visible().title("AccountManager")
+                .contentPane(new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, OUTPUT,
+                        new CustomPanel(200, 40)
+                                .boxLayout(BoxLayout.Y_AXIS)
+                                .addTextField("user:pass, user1:pass1...", "input")
+                                .addComponent(() -> ELO_SELECTION, (customPanel, selectionBox) ->
+                                        selectionBox.addActionListener(e -> OUTPUT.update()))
+                                .addComponent(() -> REGION_SELECTION, (customPanel, selectionBox) ->
+                                        selectionBox.addActionListener(e -> OUTPUT.update()))
+                                .addButton("add Accounts", (customPanel, button, event) -> {
+                                    Stream.of(customPanel.getText("input").split(","))
+                                            .map(account -> account.trim().split(":"))
+                                            .forEach(credential -> STORAGE.accounts.add(new Account(credential[0], credential[1],
+                                                    ELO_SELECTION.getSelected(), REGION_SELECTION.getSelected())));
+                                    OUTPUT.update();
+                                }))).create();
         OUTPUT.update();
-
-        FrameBuilder.newBuilder().centered().sizeLocked().visible().title("AccountManager").contentPane(new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, OUTPUT, menu)).create();
     }
 
     public static class Output extends JScrollPane {
-        private final JPanel viewPanel = new JPanel();
+        private final Box viewPanel = new Box(BoxLayout.Y_AXIS);
         public Output() {
-            this.viewPanel.setLayout(new BoxLayout(this.viewPanel, BoxLayout.Y_AXIS));
             this.setPreferredSize(new Dimension(660, 800));
             this.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
             this.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);

@@ -11,7 +11,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.WearBlackAllDay:JavaUtils:aeeed37235cbfae9c4f7325b44da6a2b2f4ddf4e'
+    implementation 'com.github.WearBlackAllDay:JavaUtils:bd578f0058784082202a17a556b81988e039df62'
     implementation "com.formdev:flatlaf:0.38"
     implementation 'com.google.code.gson:gson:2.8.6'
 }
