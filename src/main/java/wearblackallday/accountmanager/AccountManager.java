@@ -2,6 +2,7 @@ package wearblackallday.accountmanager;
 
 import com.formdev.flatlaf.FlatDarculaLaf;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import wearblackallday.swing.components.CustomPanel;
 import wearblackallday.swing.components.FrameBuilder;
 import wearblackallday.swing.components.SelectionBox;
@@ -12,10 +13,11 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class AccountManager {
 
-    private static final Gson GSON = new Gson().newBuilder().setPrettyPrinting().create();
+    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     public static final AccountStorage STORAGE;
     public static final Output OUTPUT;
     private static final SelectionBox<Account.Elo> ELO_SELECTION;
@@ -42,13 +44,11 @@ public class AccountManager {
                 .addComponent(() -> REGION_SELECTION, (customPanel, selectionBox) ->
                         selectionBox.addActionListener(e -> OUTPUT.update()))
                 .addButton("add Accounts", (customPanel, button, event) -> {
-                    String[] accounts = customPanel.getText("input").split(",");
-                    for (String acc : accounts) {
-                        String[] credentials = acc.trim().split(":");
-                        Account account = new Account(credentials[0], credentials[1],
-                                ELO_SELECTION.getSelected(), REGION_SELECTION.getSelected());
-                        STORAGE.accounts.add(account);
-                    }
+                    Stream.of(customPanel.getText("input").split(",")).forEach(account -> {
+                        String[] credentials = account.trim().split(":");
+                        STORAGE.accounts.add(new Account(credentials[0], credentials[1],
+                                ELO_SELECTION.getSelected(), REGION_SELECTION.getSelected()));
+                    });
                     OUTPUT.update();
                 });
         menu.setLayout(new BoxLayout(menu, BoxLayout.Y_AXIS));

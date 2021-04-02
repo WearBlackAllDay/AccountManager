@@ -13,7 +13,7 @@ repositories {
 dependencies {
     implementation 'com.github.WearBlackAllDay:JavaUtils:aeeed37235cbfae9c4f7325b44da6a2b2f4ddf4e'
     implementation "com.formdev:flatlaf:0.38"
-    compile "com.google.code.gson:gson:2.8.6"
+    implementation 'com.google.code.gson:gson:2.8.6'
 }
 application {
     mainClassName = "wearblackallday.accountmanager.AccountManager"
