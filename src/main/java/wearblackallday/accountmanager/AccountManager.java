@@ -3,6 +3,7 @@ package wearblackallday.accountmanager;
 import com.formdev.flatlaf.FlatDarculaLaf;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import wearblackallday.data.Strings;
 import wearblackallday.swing.components.CustomPanel;
 import wearblackallday.swing.components.SelectionBox;
 import wearblackallday.swing.components.builder.FrameBuilder;
@@ -10,79 +11,76 @@ import wearblackallday.swing.components.builder.FrameBuilder;
 import javax.swing.*;
 import java.awt.Dimension;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 public class AccountManager {
 
-    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-    public static final AccountStorage STORAGE;
-    public static final Output OUTPUT;
-    private static final SelectionBox<Account.Elo> ELO_SELECTION;
-    private static final SelectionBox<Account.Region> REGION_SELECTION;
+	static {
+		FlatDarculaLaf.install();
+	}
 
-    static {
-        FlatDarculaLaf.install();
-        OUTPUT = new Output();
-        ELO_SELECTION = new SelectionBox<>(elo -> elo.toString().toLowerCase(), Account.Elo.values());
-        REGION_SELECTION = new SelectionBox<>(Account.Region.values());
-        try {
-            File file = new File("accounts.json");
-            STORAGE = file.createNewFile() ? new AccountStorage() : GSON.fromJson(new FileReader(file), AccountStorage.class);
-        } catch (IOException exception) {
-            throw new RuntimeException("IO is shit");
-        }
-    }
+	public static AccountStorage STORAGE = new AccountStorage();
 
-    public static void main(String[] args) {
-        FrameBuilder.newBuilder().centered().sizeLocked().visible().title("AccountManager")
-                .contentPane(new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, OUTPUT,
-                        new CustomPanel(200, 40)
-                                .boxLayout(BoxLayout.Y_AXIS)
-                                .addTextField("user:pass, user1:pass1...", "input")
-                                .addComponent(() -> ELO_SELECTION, (customPanel, selectionBox) ->
-                                        selectionBox.addActionListener(e -> OUTPUT.update()))
-                                .addComponent(() -> REGION_SELECTION, (customPanel, selectionBox) ->
-                                        selectionBox.addActionListener(e -> OUTPUT.update()))
-                                .addButton("add Accounts", (customPanel, button, event) -> {
-                                    Stream.of(customPanel.getText("input").split(","))
-                                            .map(account -> account.trim().split(":"))
-                                            .forEach(credential -> STORAGE.accounts.add(new Account(credential[0], credential[1],
-                                                    ELO_SELECTION.getSelected(), REGION_SELECTION.getSelected())));
-                                    OUTPUT.update();
-                                }))).create();
-        OUTPUT.update();
-    }
+	private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+	private static final File FILE = new File("accounts.json");
+	private static final Box OUTPUT = new Box(BoxLayout.Y_AXIS);
+	private static final SelectionBox<Account.Elo> ELO_SELECTION
+		= new SelectionBox<>(elo -> elo.toString().toLowerCase(), Account.Elo.values());
+	private static final SelectionBox<Account.Region> REGION_SELECTION
+		= new SelectionBox<>(Account.Region.values());
 
-    public static class Output extends JScrollPane {
-        private final Box viewPanel = new Box(BoxLayout.Y_AXIS);
-        public Output() {
-            this.setPreferredSize(new Dimension(660, 800));
-            this.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-            this.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-            this.setViewportView(this.viewPanel);
-        }
-        public void update() {
-            this.viewPanel.removeAll();
-            STORAGE.getFits().forEach(account -> this.viewPanel.add(account.display()));
-            this.repaint();
-            this.revalidate();
-            try {
-                new PrintStream("accounts.json").print(GSON.toJson(STORAGE));
-            } catch (FileNotFoundException e) {
-                System.out.println("this never happens");
-            }
-        }
-    }
+	public static void main(String[] args) throws IOException {
+		if(!FILE.createNewFile()) {
+			STORAGE = GSON.fromJson(new FileReader(FILE), AccountStorage.class);
+		}
 
-    public static class AccountStorage {
-        public List<Account> accounts = new ArrayList<>();
+		JTextArea input = new JTextArea();
 
-        public List<Account> getFits() {
-            return this.accounts.stream().filter(account ->
-                    account.elo == ELO_SELECTION.getSelected() && account.region == REGION_SELECTION.getSelected()).collect(Collectors.toList());
-        }
-    }
+		JScrollPane display = new JScrollPane();
+		display.setPreferredSize(new Dimension(660, 800));
+		display.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+		display.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+		display.setViewportView(OUTPUT);
+
+		new FrameBuilder().visible().sizeLocked().centered().title("AccountManager")
+			.contentPane(new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, display,
+				new CustomPanel(200, 40)
+					.boxLayout(BoxLayout.Y_AXIS)
+					.addComponent(input)
+					.addComponent(() -> ELO_SELECTION, (panel, selectionBox) ->
+						selectionBox.addActionListener(e -> update()))
+					.addComponent(() -> REGION_SELECTION, (panel, selectionBox) ->
+						selectionBox.addActionListener(e -> update()))
+					.addButton("add Accounts", (panel, button, event) -> {
+						Arrays.stream(input.getText().contains(",") ?
+							input.getText().split(",") : Strings.splitLines(input.getText()))
+							.map(account -> account.trim().split(":"))
+							.forEach(credential -> STORAGE.accounts.add(new Account(credential[0], credential[1],
+								ELO_SELECTION.getSelected(), REGION_SELECTION.getSelected())));
+						update();
+					}))).create();
+		update();
+	}
+
+	public static void update() {
+		OUTPUT.removeAll();
+		STORAGE.accounts.stream()
+			.filter(account -> account.elo == ELO_SELECTION.getSelected()
+				&& account.region == REGION_SELECTION.getSelected())
+			.map(Account::display)
+			.forEach(OUTPUT::add);
+		OUTPUT.repaint();
+		OUTPUT.revalidate();
+		try {
+			new PrintStream(FILE).print(GSON.toJson(STORAGE));
+		} catch(FileNotFoundException e) {
+			System.out.println("this never happens");
+		}
+	}
+
+	public static class AccountStorage {
+		public Set<Account> accounts = new HashSet<>();
+	}
 }
