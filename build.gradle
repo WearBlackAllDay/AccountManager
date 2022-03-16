@@ -1,23 +1,24 @@
 plugins {
-    id 'java'
+    id "java"
     id "application"
 }
-
-version '1.0.0'
-
 repositories {
     mavenCentral()
-    maven { url 'https://jitpack.io' }
+    maven { url "https://jitpack.io" }
 }
 
 dependencies {
-    implementation 'com.github.WearBlackAllDay:JavaUtils:16645df219165a70ab68b38399c15ad0422e13ac'
-    implementation "com.formdev:flatlaf:0.38"
-    implementation 'com.google.code.gson:gson:2.8.6'
+    implementation "com.github.wearblackallday:JavaUtils:9c6f3b4385"
+    implementation "com.formdev:flatlaf:2.0.2"
+    implementation "com.formdev:flatlaf-intellij-themes:2.0.2"
+    implementation "com.google.code.gson:gson:2.9.0"
 }
+
 application {
     mainClassName = "wearblackallday.accountmanager.AccountManager"
 }
+
+version "1.1.0"
 task fatJar(type: Jar) {
     manifest {
         attributes(
@@ -31,6 +32,9 @@ task fatJar(type: Jar) {
             it.isDirectory() ? it : zipTree(it)
         }
     }
+    exclude "META-INF/LICENSE"
+    exclude "META-INF/maven/**"
+    exclude "META-INF/versions/**"
     with jar
 }
 artifacts {

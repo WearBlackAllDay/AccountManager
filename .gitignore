@@ -9,3 +9,9 @@ screenshots/
 bin/
 
 .DS_Store
+
+accounts.json
+
+out/production/classes/wearblackallday/accountmanager/
+
+META-INF/
