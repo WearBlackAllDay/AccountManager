@@ -12,6 +12,8 @@ bin/
 
 accounts.json
 
-out/production/classes/wearblackallday/accountmanager/
-
 META-INF/
+
+out/**
+
+src/test
