@@ -7,6 +7,7 @@ import com.google.gson.stream.JsonWriter;
 import java.io.IOException;
 
 public record Credentials(String username, String password) {
+	public static final String FORMAT = "username:password...";
 
 	public static final TypeAdapter<Credentials> ADAPTER = new TypeAdapter<>() {
 		@Override

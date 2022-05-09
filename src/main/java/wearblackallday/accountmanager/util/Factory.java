@@ -2,6 +2,7 @@ package wearblackallday.accountmanager.util;
 
 import wearblackallday.accountmanager.AccountManager;
 import wearblackallday.accountmanager.util.account.Credentials;
+import wearblackallday.accountmanager.util.account.Elo;
 import wearblackallday.javautils.data.Strings;
 import wearblackallday.javautils.swing.components.LPanel;
 
@@ -27,16 +28,26 @@ public class Factory {
 
 	private static JPanel buildLoginDisplay(Credentials credentials) {
 		return new LPanel()
-			.defaultSize(300, 30)
+			.defaultSize(200, 30)
 			.addButton(credentials.username(), () -> Strings.clipboard(credentials.username()))
 			.addButton(credentials.password(), () -> Strings.clipboard(credentials.password()))
-			.addComponent(Factory.button("^", () -> {
-				Storage.get().remove(credentials);
-				AccountManager.get().input.setText(AccountManager.get().input.getText() + credentials + "\n");
+			.addComponent(Factory.button("\uD83D\uDD04", () -> {
+				Elo newElo = (Elo)JOptionPane.showInputDialog(AccountManager.get(),
+					"new elo of\s" + credentials.username(),
+					"change Elo",
+					JOptionPane.QUESTION_MESSAGE,
+					null,
+					Elo.values(),
+					null);
+				if(newElo != null) {
+					Storage.get().remove(credentials);
+					Storage.get().add(credentials, newElo);
+				}
 			}))
-			.addComponent(Factory.button("x", () -> {
+			.addComponent(Factory.button("\uD83D\uDDD1", () -> {
 				Storage.get().remove(credentials);
 				DISPLAY_CACHE.remove(credentials);
 			}));
 	}
+
 }

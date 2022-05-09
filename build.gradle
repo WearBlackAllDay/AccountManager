@@ -9,8 +9,8 @@ repositories {
 
 dependencies {
     implementation "com.github.wearblackallday:JavaUtils:9c6f3b4385"
-    implementation "com.formdev:flatlaf:2.1"
-    implementation "com.formdev:flatlaf-intellij-themes:2.1"
+    implementation "com.formdev:flatlaf:2.2"
+    implementation "com.formdev:flatlaf-intellij-themes:2.2"
     implementation "com.google.code.gson:gson:2.9.0"
 }
 

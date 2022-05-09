@@ -18,8 +18,8 @@ public class Storage {
 
 	private static final Storage INSTANCE = load();
 
-	private Region regionContext;
 	private Elo eloContext;
+	private Region regionContext;
 	private final Map<Region, Map<Elo, Set<Credentials>>> accounts = new EnumMap<>(Region.class);
 
 	static {
@@ -27,9 +27,13 @@ public class Storage {
 	}
 
 	public void add(Credentials credentials) {
+		this.add(credentials, this.eloContext);
+	}
+
+	public void add(Credentials credentials, Elo elo) {
 		this.accounts.putIfAbsent(this.regionContext, new EnumMap<>(Elo.class));
-		this.accounts.get(this.regionContext).putIfAbsent(this.eloContext, new HashSet<>());
-		this.accounts.get(this.regionContext).get(this.eloContext).add(credentials);
+		this.accounts.get(this.regionContext).putIfAbsent(elo, new HashSet<>());
+		this.accounts.get(this.regionContext).get(elo).add(credentials);
 	}
 
 	public void remove(Credentials credentials) {
@@ -48,14 +52,14 @@ public class Storage {
 		return this.eloContext;
 	}
 
-	public void setContext(Region region, Elo elo) {
-		this.regionContext = region;
+	public void setContext(Elo elo, Region region) {
 		this.eloContext = elo;
+		this.regionContext = region;
 	}
 
 	private static Storage load() {
-		try {
-			if(!FILE.createNewFile()) return GSON.fromJson(new FileReader(FILE), Storage.class);
+		try(FileReader reader = new FileReader(FILE)) {
+			if(!FILE.createNewFile()) return GSON.fromJson(reader, Storage.class);
 		} catch(IOException ignored) {
 		}
 		return new Storage();
